@@ -27,17 +27,24 @@ CREATE TABLE Category(
 
 CREATE TABLE Order(
     id_order SERIAL PRIMARY KEY,
-    costo_total DECIMAL(12, 2),
-    cantidad INT,
     fecha_venta DATE,
-    id_item INT REFERENCES Item (id_item),
+    costo_total DECIMAL(12, 2),
     id_customer INT REFERENCES Customer (id_customer)
 );
 
--- Tabla nueva para la pregunta 4
+--Creación de tabla intermedia entre Order y Item, para resolver relación N a M
+CREATE TABLE Order_Item(
+    id_order INT REFERENCES Order (id_order),
+    id_item INT REFERENCES Item (id_item),
+    cantidad INT NOT NULL,
+    costo_total DECIMAL(12, 2),
+    PRIMARY KEY (id_order, id_item)
+);
+
+--Tabla nueva para la pregunta 4
 CREATE TABLE Status(
     id_status SERIAL PRIMARY KEY,
-    id_item INT REFERENCES Item (id_item)
+    id_item INT REFERENCES Item (id_item),
     nombre_item VARCHAR(200) NOT NULL,
     precio DECIMAL(12, 2),
     estado VARCHAR(20),

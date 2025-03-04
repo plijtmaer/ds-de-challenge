@@ -14,19 +14,21 @@ HAVING COUNT(o.id_order) > 1500;
 -- vendedor, cantidad de ventas realizadas, cantidad de productos vendidos y el monto
 -- total transaccionado.
 WITH ventas_usuarios_categoria_celulares AS (
-    SELECT EXTRACT('MONTH' FROM o.fecha_venta) AS mes, 
-        EXTRACT('YEAR' FROM o.fecha_venta) AS ano, 
-        cu.nombre, 
-        cu.apellido,
-        COUNT(o.id_order) AS cant_ventas,
-        SUM(o.cantidad) AS cant_prod_vendidos,
-        SUM(o.costo_total) AS monto
+    SELECT EXTRACT('MONTH' FROM o.fecha_venta) AS mes,
+           EXTRACT('YEAR' FROM o.fecha_venta) AS ano, 
+           cu.nombre, 
+           cu.apellido,
+           COUNT(DISTINCT o.id_order) AS cant_ventas,
+           SUM(oi.cantidad) AS cant_prod_vendidos,
+           SUM(oi.costo_total) AS monto
     FROM Order AS o
-    JOIN Item AS i
-        ON o.id_item = i.id_item
-    JOIN Category AS c
+    JOIN Order_Item AS oi 
+        ON o.id_order = oi.id_order
+    JOIN Item AS i 
+        ON oi.id_item = i.id_item
+    JOIN Category AS c 
         ON i.id_category = c.id_category
-    JOIN Customer AS cu
+    JOIN Customer AS cu 
         ON o.id_customer = cu.id_customer
     WHERE c.nombre_cat = 'Celulares'
         AND EXTRACT('YEAR' FROM o.fecha_venta) = 2020
@@ -44,23 +46,29 @@ ORDER BY mes, ano, rank;
 -- 3. Calcular el % de venta ($) que representa cada categoría respecto del total vendido ($)
 -- por día. Traer en la misma query la venta máxima y mínima de la fecha.
 WITH total_vendido_por_dia AS (
-    SELECT fecha_venta AS fecha, SUM(costo_total) AS total_vendido
-    FROM Order
-    GROUP BY fecha_venta
+    SELECT o.fecha_venta AS fecha, SUM(oi.costo_total) AS total_vendido
+    FROM Order AS o
+    JOIN Order_Item AS oi 
+        ON o.id_order = oi.id_order
+    GROUP BY o.fecha_venta
 ),
 venta_por_categoria_por_dia AS (
-    SELECT o.fecha_venta AS fecha, c.nombre_cat, SUM(o.costo_total) AS total_vendido_por_cat
+    SELECT o.fecha_venta AS fecha, c.nombre_cat, SUM(oi.costo_total) AS total_vendido_por_cat
     FROM Order AS o
-    JOIN Item AS i
-        ON o.id_item = i.id_item
-    JOIN Category AS c
+    JOIN Order_Item AS oi 
+        ON o.id_order = oi.id_order
+    JOIN Item AS i 
+        ON oi.id_item = i.id_item
+    JOIN Category AS c 
         ON i.id_category = c.id_category
-    GROUP BY fecha_venta, c.nombre_cat
+    GROUP BY o.fecha_venta, c.nombre_cat
 ),
 ventas_min_max_por_dia AS (
-    SELECT fecha_venta AS fecha, MAX(costo_total) AS venta_maxima, MIN(costo_total) AS venta_minima
-    FROM Order
-    GROUP BY fecha_venta
+    SELECT o.fecha_venta AS fecha, MAX(oi.costo_total) AS venta_maxima, MIN(oi.costo_total) AS venta_minima
+    FROM Order AS o
+    JOIN Order_Item AS oi 
+        ON o.id_order = oi.id_order
+    GROUP BY o.fecha_venta
 )
 SELECT vc.fecha, 
        vc.nombre_cat, 
