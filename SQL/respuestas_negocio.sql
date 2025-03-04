@@ -89,7 +89,7 @@ CREATE TABLE Status(
 --EXECUTION_DATE permite seleccionar el día de ejecución, en caso de necesitar evaluar algún día en particular.
 --Por otro lado, BUFFER_SIZE permite armar una ventana de tiempo más amplia, en caso de necesitar evaluar varios días, hasta la fecha definida en EXECUTION_DATE.
 --Por default, BUFFER_SIZE se hardcodea a 0, mientras que EXECUTION_DATE puede dejarse como CURRENT_DATE() en algún script que sea llamado por el orquestador. 
-INSERT INTO Estado
+INSERT INTO Status
     SELECT id_item, nombre_item, precio, estado, CURRENT_DATE() AS fecha --Se toma la fecha actual
     FROM Item
     WHERE fecha_de_baja BETWEEN (${EXECUTION_DATE}::DATE - INTERVAL '${BUFFER_SIZE} DAYS') AND ${EXECUTION_DATE}::DATE--logica para reprocesar en Matillion, para variables de Airflow usar {{ BUFFER_SIZE }} o {{ EXECUTION_DATE }}
